@@ -1,10 +1,11 @@
 //External Libraries
 import * as THREE from "/modules/three.module.js";
 import Stats from "/modules/stats.module.js";
+// import Delaunator from "https://cdn.skypack.dev/delaunator@5.0.0";
 //Internal Libraries
 import { NoClipControls } from "/utils/NoClipControls.js";
 import { PhysicsObject } from "/utils/PhysicsObject.js";
-
+import { DelaunayGenerator } from "/utils/DelaunayGenerator.js";
 //THREE JS
 let camera, scene, renderer, composer, controls;
 let stats;
@@ -12,6 +13,8 @@ let stats;
 let prevTime = performance.now();
 let physicsObjects = [];
 let frameIndex = 0;
+
+let DG;
 
 init();
 animate();
@@ -25,7 +28,7 @@ function init() {
     var loader = new THREE.TextureLoader(),
       texture = loader.load("/static/nightsky2.jpg");
     scene.background = texture;
-    scene.fog = new THREE.Fog(0xffffff, 100, 750);
+    scene.fog = new THREE.Fog(0x102234, 700, 1000);
   };
   createScene();
 
@@ -129,27 +132,55 @@ function init() {
   createStars();
 
   //Large Star
-  let p0 = new PhysicsObject(10000, 0, 0, 0, 0, 0, 0, 0, 1);
+  let p0 = new PhysicsObject(10000, 0, 250, 0, 0, 0, 0, 0, 1);
   p0.isStationary = true;
-  p0.density = 10000;
+  p0.density = 200;
 
   //Black Hole
   physicsObjects.push(p0);
   scene.add(p0.Sphere());
 
   //PhyscsObject creation loop
-  for (let i = 0; i < 100; i++) {
-    let radius = 50;
+  for (let i = 0; i < 20; i++) {
+    let radius = 80;
     let x_offset = 0;
-    let y_offset = 0;
-    let z_offset = 0;
+    let y_offset = 250;
+    let z_offset = 125;
     let px = x_offset + (2 * Math.random() - 1) * radius;
     let py = y_offset + (2 * Math.random() - 1) * radius;
     let pz = z_offset + (2 * Math.random() - 1) * radius;
-    let physicsObject = new PhysicsObject(1, px, py, pz, 0, 0, 0, 0.01, 1);
+    let physicsObject = new PhysicsObject(
+      5 + (3 * Math.random() - 1) * 7,
+      px,
+      py,
+      pz,
+      2,
+      0.08,
+      0,
+      0,
+      1
+    );
+    // physicsObject.m =    5 + (3 * Math.random() - 1) * 7,
+    // physicsObject.x = px;
+    // physicsObject.y = py;
+    // physicsObject.z = pz;
+    // physicsObject.offset = 0;
+    // physicsObject.ivx = 0;
+    // physicsObject.ivy = 0;
+    // physicsObject.ivz = 0.1;
+    // physicsObject.density = 1;
+
     physicsObjects.push(physicsObject);
     scene.add(physicsObject.Sphere());
   }
+  //##############################################################################
+  //Delauney Triangulation
+  //##############################################################################
+
+  DG = new DelaunayGenerator(scene);
+  console.log(DG);
+  DG.createPoints();
+  DG.calculate();
 }
 
 function animate() {
@@ -170,10 +201,15 @@ function animate() {
     }
   }
 
+  if (frameIndex % 2 == 0) {
+    DG.update();
+  }
+
   const time = performance.now();
   controls.update(time, prevTime);
   renderer.render(scene, camera);
   stats.update();
+  frameIndex += 1;
 
   //Frame Shut Down
   prevTime = time;

@@ -10,12 +10,6 @@ class PhysicsObject {
     this.dirVector = new THREE.Vector3();
     this.mesh;
 
-    this.tail = null;
-    this.tail_length = 25;
-    this.tail_history = [];
-    this.tail_geometry = null;
-    this.tail_material = null;
-
     this.lookDir;
     this.hasBeenRaycast;
     this.offset = offset;
@@ -23,7 +17,7 @@ class PhysicsObject {
     this.isStationary = false;
   }
   Sphere() {
-    let mat = new THREE.MeshStandardMaterial({
+    let mat = new THREE.MeshPhongMaterial({
       wireframe: false,
       transparent: false,
       depthTest: true,
@@ -49,13 +43,13 @@ class PhysicsObject {
     this.mesh.position.y = this.pos.y;
     this.mesh.position.z = this.pos.z;
 
-    // if (this.mesh.userData.hasBeenRaycast) {
-
-    //     this.mesh.material.color = new THREE.Color(`hsl(${50}, 100%, 100%)`);
-
-    // } else {
-    //     this.mesh.material.color = new THREE.Color(`hsl(${200 - (-1 * this.velocity.length()) * 10 ** 3.2}, 100%, 50%)`);
-    // }
+    if (this.mesh.userData.hasBeenRaycast) {
+      this.mesh.material.color = new THREE.Color(`hsl(${50}, 100%, 100%)`);
+    } else {
+      this.mesh.material.color = new THREE.Color(
+        `hsl(${200 - -1 * this.velocity.length() * 10 ** 3.2}, 100%, 50%)`
+      );
+    }
   }
 
   // Mover applyForce
